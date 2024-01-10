@@ -1,5 +1,5 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion, Db } = require('mongodb');
+const { MongoClient, ServerApiVersion, Db, ObjectId } = require('mongodb');
 const app = express();
 require('dotenv').config();
 const cors =require('cors');
@@ -59,6 +59,16 @@ async function run() {
 
 
 
+    // verify admin
+    const verifyAdmin = async (req,res,next)=>{
+        const email =req.decoded.email;
+        const query ={email:email};
+        const user =await usersCollection.findOne(query);
+        if(user?.role !=='admin'){
+            return res.status(403).send({ error: true, message: 'forbidden message' })
+        }
+        next();
+    }
     // jwt web token
      
     app.post('/jwt',(req,res)=>{
@@ -84,6 +94,34 @@ async function run() {
         const result =await usersCollection.insertOne(user);
         res.send(result);
     });
+ 
+    // verify jwt admin secqurity
+    app.patch("/users/admin/:id", async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            role: "admin",
+          },
+        };
+        const result = await usersCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      });
+
+    // admin apis
+
+    app.get('/users/admin/:email',verifyJwt,async(req,res)=>{
+        const email=req.params.email;
+        const decodedEail =req.decoded.email;
+        if(decodedEail !== email){
+            res.send({admin:false});
+        }
+        const query ={email:email}
+        const user = await usersCollection.findOne(query);
+        const result ={admin: user?.role ==="admin"}
+        console.log('admin:',result)
+        res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
