@@ -9,17 +9,10 @@ const cors =require('cors');
 const jwt =require('jsonwebtoken');
 const port =process.env.PORT || 5000;
 
-// app.use(
-//     fileupload({
-//       createParentPath: true,
-//     }),
-//   );
 
-// medile were
 
 app.use(cors());
 app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
 
 
 //verify jwt access token
@@ -49,32 +42,6 @@ const verifyJwt=(req,res,next)=>{
 // mongoDb connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzjru.mongodb.net/?retryWrites=true&w=majority`;
 
-// mongoos connect
-mongoose.connect(uri,{ useNewUrlParser: true, useUnifiedTopology: true });
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-
-// Define a mongoose schema for your collection
-const productSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    imageUrl: String,
-  });
-  
-  const Product = mongoose.model('Product', productSchema);
-  
-  // Set up Multer to handle file uploads
-  const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'upload/');
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.originalname);
-    },
-  });
-  
-  const upload = multer({ storage: storage }).single('image');
-  
 
 
 
@@ -96,6 +63,7 @@ async function run() {
     const usersCollection = client.db("bookShop").collection("users");
     const booksCollection = client.db("bookShop").collection("books");
     const imageCollection = client.db("bookShop").collection("uploads");
+    const cartCollection = client.db("bookShop").collection("cart");
 
 
 
@@ -118,7 +86,7 @@ async function run() {
     })
     
     // user apis
-    app.get('/users',async(req,res)=>{
+    app.get('/users',verifyJwt,verifyAdmin,async(req,res)=>{
         const result = await usersCollection.find({}).toArray();
         res.send(result)
     })
@@ -163,48 +131,7 @@ async function run() {
         res.send(result);
     })
 
-    // image apis
-
-    app.get('/uploads',async(req,res)=>{
-        const result = await imageCollection.find().toArray()
-        res.send(result);
-    })
-
-
-
-    // Handle image upload
-app.post('/uploads', async (req, res) => {
-
-    upload(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-          // A Multer error occurred when uploading.
-          return res.status(500).json({ success: false, message: 'Multer Error', error: err.message });
-        } else if (err) {
-          // An unknown error occurred when uploading.
-          return res.status(500).json({ success: false, message: 'Unknown Error', error: err.message });
-        }
-    
-        // No errors, continue processing.
-    
-        const { name, description } = req.body;
-    
-        // Save the image metadata in MongoDB
-        const product = new Product({
-          name: name,
-          description: description,
-          imageUrl: `/upload/${req.file.filename}`, // Assuming 'uploads' is a public directory
-        });
-    
-        product.save()
-          .then(() => {
-            res.json({ success: true,product, message: 'Image uploaded and metadata saved successfully.' });
-          })
-          .catch(error => {
-            console.error(error);
-            res.status(500).json({ success: false, message: 'Error saving to MongoDB' });
-          });
-      });
-  });
+    // books api
 
     app.get('/books',async(req,res)=>{
         const result =await booksCollection.find().toArray();
@@ -217,6 +144,42 @@ app.post('/uploads', async (req, res) => {
         const result =await booksCollection.insertOne(newBook);
         res.send(result);
     })
+
+    // carts apis
+
+    app.get('/carts',verifyJwt, async(req,res)=>{
+      const email =req.query.email;
+      // console.log(email);
+      if(!email){
+        res.send([]);
+      }
+
+      const decodedEmail =req.decoded.email;
+
+      if(decodedEmail !=email){
+        return res.status(403).send({ error: true, message: "forbidden access" })
+
+      }
+      const query={email:email};
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
+
+    })
+
+
+    app.post('/carts',async(req,res)=>{
+      const item =req.body;
+      console.log(item);
+      const result =await cartCollection.insertOne(item)
+      res.send(result)
+    })
+
+    app.delete("/carts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection
