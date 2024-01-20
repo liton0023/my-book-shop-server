@@ -145,6 +145,51 @@ async function run() {
         res.send(result);
     })
 
+    app.delete('/books/:id',verifyJwt,verifyAdmin,async(req,res)=>{
+      const id =req.params.id;
+      const query ={ _id:new ObjectId(id)}
+      const result = await booksCollection.deleteOne(query);
+      console.log(result)
+      res.send(result);
+    })
+
+    app.put('/books/:id',verifyJwt,verifyAdmin,async(req,res)=>{
+      const id =req.params.id;
+      // console.log(id);
+      const filter ={_id: id};
+      const{name,price,category,wirter,imgUrl}=req.body;
+      // console.log(name);
+      const updateItem ={
+        name : name,
+        price :price,
+        wirter: wirter,
+        category : category ,
+        imgUrl : imgUrl
+      }
+      console.log(updateItem)
+      const option ={new : true};
+
+      try{
+ 
+        const result = await booksCollection.replaceOne(filter,updateItem,option)
+        if(result.modifiedCount === 0){
+          console.log('Document replaced successfylly');
+        }
+        else{
+          console.log('Document not found or not replaced');
+        }
+        console.log(result)
+      }
+      catch (err) {
+
+        console.error('Error replacing document:', err);
+      }
+
+
+
+
+    })
+
     // carts apis
 
     app.get('/carts',verifyJwt, async(req,res)=>{
