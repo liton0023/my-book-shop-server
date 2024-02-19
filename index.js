@@ -138,6 +138,15 @@ async function run() {
         res.send(result);
     })
 
+    app.get('/books/:id',async(req,res)=>{
+      const id = req.params.id;
+      const queryFilter = {_id: new ObjectId(id)}
+      console.log(id)
+      const result = await booksCollection.findOne(queryFilter);
+      console.log(result)
+      res.send(result)
+    })
+
 
     app.post('/books',verifyJwt,verifyAdmin,async(req,res)=>{
         const newBook =req.body;
