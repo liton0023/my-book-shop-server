@@ -90,7 +90,6 @@ async function run() {
         const result = await usersCollection.find({}).toArray();
         res.send(result)
     })
-
     app.post('/users', async (req,res)=>{
         const user = req.body;
         // console.log(user);
@@ -102,6 +101,19 @@ async function run() {
         const result =await usersCollection.insertOne(user);
         res.send(result);
     });
+
+    app.get('/users/:email',verifyJwt, async(req,res)=>{
+      const email =req.params.email;
+      console.log(email);
+      if(!email){
+        res.send([]);
+      }
+      const query={email:email};
+      const result = await usersCollection.findOne(query);
+      console.log(result)
+      res.send(result);
+
+    })
  
     // verify jwt admin secqurity
     app.patch("/users/admin/:id", async (req, res) => {
@@ -130,7 +142,6 @@ async function run() {
         console.log('admin:',result)
         res.send(result);
     })
-
     // books api
 
     app.get('/books',async(req,res)=>{
@@ -143,7 +154,7 @@ async function run() {
       const queryFilter = {_id: new ObjectId(id)}
       console.log(id)
       const result = await booksCollection.findOne(queryFilter);
-      console.log(result)
+      // console.log(result)
       res.send(result)
     })
 
@@ -158,7 +169,7 @@ async function run() {
       const id =req.params.id;
       const query ={ _id:new ObjectId(id)}
       const result = await booksCollection.deleteOne(query);
-      console.log(result)
+      // console.log(result)
       res.send(result);
     })
 
@@ -187,7 +198,7 @@ async function run() {
         else{
           console.log('Document not found or not replaced');
         }
-        console.log(result)
+        // console.log(result)
       }
       catch (err) {
 
