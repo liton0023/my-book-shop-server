@@ -62,8 +62,8 @@ async function run() {
 
     const usersCollection = client.db("bookShop").collection("users");
     const booksCollection = client.db("bookShop").collection("books");
-    const imageCollection = client.db("bookShop").collection("uploads");
     const cartCollection = client.db("bookShop").collection("cart");
+    const silderImageCollection = client.db("bookShop").collection("sliderImage");
 
 
 
@@ -208,6 +208,23 @@ async function run() {
 
 
 
+    })
+
+    // slider image api
+
+    app.post('/sliderimg',verifyJwt,verifyAdmin,async(req,res)=>{
+      const slideImg = req.body;
+
+      // console.log(slideImg)
+      const result =  await silderImageCollection.insertOne({slideImg: slideImg})
+      // console.log(result);
+      res.send(result);
+    })
+
+    app.get('sliderimg',async(req,res)=>{
+        const result = await silderImageCollection.find().toArray();
+        console.log(result);
+        res.send(result)
     })
 
     // carts apis
