@@ -64,6 +64,7 @@ async function run() {
     const booksCollection = client.db("bookShop").collection("books");
     const cartCollection = client.db("bookShop").collection("cart");
     const silderImageCollection = client.db("bookShop").collection("sliderImage");
+    const commentCollection = client.db("bookShop").collection("comment");
 
 
 
@@ -86,7 +87,7 @@ async function run() {
     })
     
     // user apis
-    app.get('/users',verifyJwt,verifyAdmin,async(req,res)=>{
+    app.get('/users',async(req,res)=>{
         const result = await usersCollection.find({}).toArray();
         res.send(result)
     })
@@ -110,10 +111,16 @@ async function run() {
       }
       const query={email:email};
       const result = await usersCollection.findOne(query);
-      console.log(result)
+      // console.log(result)
       res.send(result);
 
     })
+
+    // app.get('/users',async(req,res)=>{
+    //   const users = await usersCollection.find().toArray();
+    //   console.log(users)
+    //   res.send(users);
+    // })
  
     // verify jwt admin secqurity
     app.patch("/users/admin/:id", async (req, res) => {
@@ -152,7 +159,7 @@ async function run() {
     app.get('/books/:id',async(req,res)=>{
       const id = req.params.id;
       const queryFilter = {_id: new ObjectId(id)}
-      console.log(id)
+      // console.log(id)
       const result = await booksCollection.findOne(queryFilter);
       // console.log(result)
       res.send(result)
@@ -221,7 +228,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('sliderimg',async(req,res)=>{
+    app.get('/sliderimg',async(req,res)=>{
         const result = await silderImageCollection.find().toArray();
         console.log(result);
         res.send(result)
@@ -251,7 +258,7 @@ async function run() {
 
     app.post('/carts',async(req,res)=>{
       const item =req.body;
-      console.log(item);
+      // console.log(item);
       const result =await cartCollection.insertOne(item)
       res.send(result)
     })
@@ -262,6 +269,25 @@ async function run() {
       const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
+
+    // comment api
+
+    app.post('/comment',async(req,res)=>{
+      const comment =req.body;
+      console.log(comment);
+      const result = await commentCollection.insertOne({comment:comment});
+      console.log(result);
+      res.send(result);
+
+    })
+
+    app.get('/comment',async(req,res)=>{
+      // const id = req.body;
+      // console.log(id)
+         const resuslt = await commentCollection.find().toArray();
+         console.log(resuslt);
+         res.send(resuslt)
+    })
 
 
     // Send a ping to confirm a successful connection
