@@ -1,9 +1,6 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion, Db, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
-const fileupload = require('express-fileupload');
-const multer = require('multer');
-const mongoose =require('mongoose');
 require('dotenv').config();
 const cors =require('cors');
 const jwt =require('jsonwebtoken');
@@ -276,7 +273,7 @@ async function run() {
       const comment =req.body;
       console.log(comment);
       const result = await commentCollection.insertOne({comment:comment});
-      console.log(result);
+      // console.log(result);
       res.send(result);
 
     })
@@ -285,7 +282,7 @@ async function run() {
       // const id = req.body;
       // console.log(id)
          const resuslt = await commentCollection.find().toArray();
-         console.log(resuslt);
+        //  console.log(resuslt);
          res.send(resuslt)
     })
 
